@@ -1,0 +1,328 @@
+<style>
+    :root {
+       --pixel-size: 2px;
+       --grid-cell: calc( var(--pixel-size) * 16);
+       --bg: #9FA7E4;
+    }
+    @media( min-width: 700px ) {
+       :root {
+          --pixel-size: 3px;
+       }
+    }
+    @media( min-width: 1000px ) {
+       :root {
+          --pixel-size: 4px;
+       }
+    }
+    html, body {
+       height: 100%;
+    }
+    body {
+       background: var(--bg);
+       display: flex;
+       align-items: center;
+       justify-content: center;
+    }
+    .pixel-art {
+       image-rendering: pixelated;
+    }
+    .frame {
+       width: calc(var(--pixel-size) * 160);
+       height: calc(var(--pixel-size) * 144);
+       outline: var(--pixel-size) solid #fff;
+       z-index:1;
+       position:relative;
+    }
+    .camera {
+       width: calc(var(--pixel-size) * 160);
+       height: calc(var(--pixel-size) * 144);
+       overflow: hidden;
+       background: #61DDF7;
+       position:relative;
+    }
+    .map {
+       image-rendering: pixelated;
+       background-image: url("https://assets.codepen.io/21542/CameraDemoMap.png");
+       background-size: 100%;
+       width: calc(13 * var(--grid-cell));
+       height: calc(10 * var(--grid-cell));
+       position: relative;
+    }
+    .character {
+       width: calc( var(--grid-cell)* 2 );
+       height: calc( var(--grid-cell)* 2 );
+       position: absolute;
+       overflow:hidden;
+    }
+    .tree {
+       width: calc(var(--grid-cell) * 2);
+       height: calc(var(--grid-cell) * 2);
+       position: absolute;
+       left: calc(var(--grid-cell) * 0.5);
+       top: calc(var(--grid-cell) * 3);
+       background: url('images/tree.png') no-repeat no-repeat;
+       background-size: contain;
+       z-index: 0;
+    }
+    .tree2 {
+       width: calc(var(--grid-cell) * 2);
+       height: calc(var(--grid-cell) * 2);
+       position: absolute;
+       left: calc(var(--grid-cell) * 9.5);
+       top: calc(var(--grid-cell) * 6);
+       background: url('images/tree.png') no-repeat no-repeat;
+       background-size: contain;
+       z-index: 0;
+    }
+    .npc1 {
+       width: calc(var(--grid-cell) * 2);
+       height: calc(var(--grid-cell) * 1.5);
+       position: absolute;
+       left: calc(var(--grid-cell) * 1);
+       top: calc(var(--grid-cell) * 6);
+       background: url('images/npc1.png') no-repeat no-repeat;
+       background-size: contain;
+       z-index: 0;
+    }
+    .shadow {
+       width: calc( var(--grid-cell)* 2 );
+       height: calc( var(--grid-cell)* 2 );
+       position: absolute;
+       left:0;
+       top:0;
+       background: url("https://assets.codepen.io/21542/DemoRpgCharacterShadow.png") no-repeat no-repeat;
+       background-size: 100%;
+    }
+    .character_spritesheet {
+       position: absolute;
+       background: url("https://assets.codepen.io/21542/DemoRpgCharacter.png") no-repeat no-repeat;
+       background-size: 100%;
+       width: calc( var(--grid-cell)* 8 );
+       height: calc( var(--grid-cell)* 8 );
+    }
+    .character[facing="right"] .character_spritesheet {
+       background-position-y: calc( var(--pixel-size) * -32 );
+    }
+    .character[facing="up"] .character_spritesheet {
+       background-position-y: calc( var(--pixel-size) * -64 );
+    }
+    .character[facing="left"] .character_spritesheet {
+       background-position-y: calc( var(--pixel-size) * -96 );
+    }
+    .character[walking="true"] .character_spritesheet {
+       animation: walkAnimation 0.6s steps(4) infinite;
+    }
+    @keyframes walkAnimation {
+      from {
+        transform: translate3d(0%,0%,0);
+      }
+      to {
+        transform: translate3d(-100%,0%,0);
+      }
+    }
+    .dpad {
+       position:absolute;
+       right: calc(var(--pixel-size) * 2);
+       bottom: calc(var(--pixel-size) * 2);
+       width: calc(var(--pixel-size) * 37);
+       height: calc(var(--pixel-size) * 38);
+    }
+    .dpad-button {
+       appearance:none;
+       outline:0;
+       border:0;
+       background:transparent;
+       padding:0;
+       cursor:pointer;
+    }
+    .dpad-button svg {
+       display:block;
+       height: calc(var(--pixel-size) * 13);
+    }
+    .dpad-button.pressed .Arrow_arrow-inset { stroke:#07c2cc; }
+    .dpad-button.pressed .Arrow_arrow-body { stroke:#17dfea; }
+    .dpad-up {
+       position: absolute;
+       left: calc(var(--pixel-size) * 12);
+       top:0;
+    }
+    .dpad-down {
+       position: absolute;
+       bottom:var(--pixel-size);
+       left: calc(var(--pixel-size) * 12);
+    }
+    .dpad-left {
+       position: absolute;
+       top: calc(var(--pixel-size) * 12);
+       left:0;
+    }
+    .dpad-right {
+       position: absolute;
+       top: calc(var(--pixel-size) * 12);
+       right:0;
+    }
+    .dpad {
+       user-select:none;
+    }
+    .corner_topleft,
+    .corner_topright,
+    .corner_bottomleft,
+    .corner_bottomright {
+       position: absolute;
+       width: var(--pixel-size);
+       height: var(--pixel-size);
+       background: var(--bg);
+       z-index:2;
+    }
+    .corner_topleft {
+       top: calc(var(--pixel-size) * -1);
+       left: calc(var(--pixel-size) * -1);
+    }
+    .corner_topright {
+       top: calc(var(--pixel-size) * -1);
+       right: calc(var(--pixel-size) * -1);
+    }
+    .corner_bottomleft {
+       bottom: calc(var(--pixel-size) * -1);
+       left: calc(var(--pixel-size) * -1);
+    }
+    .corner_bottomright {
+       bottom: calc(var(--pixel-size) * -1);
+       right: calc(var(--pixel-size) * -1);
+    }
+    .headline {
+       position:absolute;
+       top:calc(var(--pixel-size) * 2);
+       right:calc(var(--pixel-size) * 2);
+       width: calc(var(--pixel-size) * 75)
+    }
+    /* Popup styles */
+    .popup {
+       display: none;
+       position: absolute;
+       background-color: white;
+       border: 2px solid black;
+       padding: 10px;
+       z-index: 10;
+    }
+ </style>
+ <body>
+    <div class="frame">
+       <div class="corner_topleft"></div>
+       <div class="corner_topright"></div>
+       <div class="corner_bottomleft"></div>
+       <div class="corner_bottomright"></div>
+       <div class="camera">
+          <div class="map pixel-art">
+             <div class="character" facing="down" walking="true">
+                <div class="shadow pixel-art"></div>
+                <div class="character_spritesheet pixel-art"></div>
+             </div>
+             <div class="tree"></div>
+             <div class="tree2"></div>
+             <div class="npc1"></div>
+             <div class="popup" id="popup">You found a hidden treasure!</div>
+          </div>
+          <svg class="headline" xmlns="http://www.w3.org/2000/svg" viewBox="0 -0.5 75 14" shape-rendering="crispEdges">
+             <metadata>Made with Pixels to Svg https://codepen.io/shshaw/pen/XbxvNj</metadata>
+             <path stroke="rgba(128,191,255,0.01568627450980392)" d="M0 0h1M74 0h1M0 13h1M74 13h1" />
+             <path stroke="#5F5F5F" d="M1 0h73M0 1h1M74 1h1M0 2h1M74 2h1M0 3h1M74 3h1M0 4h1M74 4h1M0 5h1M74 5h1M0 6h1M74 6h1M0 7h1M74 7h1M0 8h1M74 8h1M0 9h1M74 9h1M0 10h1M74 10h1M0 11h1M74 11h1M0 12h1M74 12h1" />
+          </svg>
+       </div>
+    </div>
+    <script>
+       var character = document.querySelector(".character");
+       var map = document.querySelector(".map");
+       var popup = document.getElementById("popup");
+       var x = 90;
+       var y = 80;
+       var held_directions = [];
+       var speed = 1;
+ 
+       const placeCharacter = () => {
+          var pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
+          const held_direction = held_directions[0];
+          if (held_direction) {
+             if (held_direction === directions.right) { x += speed; }
+             if (held_direction === directions.left) { x -= speed; }
+             if (held_direction === directions.down) { y += speed; }
+             if (held_direction === directions.up) { y -= speed; }
+             character.setAttribute("facing", held_direction);
+          }
+          character.setAttribute("walking", held_direction ? "true" : "false");
+ 
+          // Limits (gives the illusion of walls)
+          var leftLimit = -8;
+          var rightLimit = (16 * 11) + 8;
+          var topLimit = -8 + 32;
+          var bottomLimit = (16 * 7);
+          if (x < leftLimit) { x = leftLimit; }
+          if (x > rightLimit) { x = rightLimit; }
+          if (y < topLimit) { y = topLimit; }
+          if (y > bottomLimit) { y = bottomLimit; }
+ 
+          // Camera position
+          var camera_left = pixelSize * 66;
+          var camera_top = pixelSize * 42;
+          map.style.transform = `translate3d( ${-x * pixelSize + camera_left}px, ${-y * pixelSize + camera_top}px, 0 )`;
+          character.style.transform = `translate3d( ${x * pixelSize}px, ${y * pixelSize}px, 0 )`;
+ 
+          // Check if the character is in the popup area
+          checkPopupArea(x, y);
+       }
+ 
+       const checkPopupArea = (x, y) => {
+          // Define the area where the popup should appear
+          const popupArea = {
+             left: 50, // Left boundary of the popup area
+             right: 70, // Right boundary of the popup area
+             top: 40, // Top boundary of the popup area
+             bottom: 60 // Bottom boundary of the popup area
+          };
+ 
+          // Check if the character is within the popup area
+          if (x >= popupArea.left && x <= popupArea.right && y >= popupArea.top && y <= popupArea.bottom) {
+             popup.style.display = 'block'; // Show the popup
+             popup.style.left = `${x * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) + 10}px`;
+             popup.style.top = `${y * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) - 10}px`;
+          } else {
+             popup.style.display = 'none'; // Hide the popup
+          }
+       }
+ 
+       const step = () => {
+          placeCharacter();
+          window.requestAnimationFrame(() => {
+             step();
+          })
+       }
+       step();
+ 
+       const directions = {
+          up: "up",
+          down: "down",
+          left: "left",
+          right: "right",
+       }
+       const keys = {
+          38: directions.up,
+          37: directions.left,
+          39: directions.right,
+          40: directions.down,
+       }
+       document.addEventListener("keydown", (e) => {
+          var dir = keys[e.which];
+          if (dir && held_directions.indexOf(dir) === -1) {
+             held_directions.unshift(dir)
+          }
+       })
+       document.addEventListener("keyup", (e) => {
+          var dir = keys[e.which];
+          var index = held_directions.indexOf(dir);
+          if (index > -1) {
+             held_directions.splice(index, 1)
+          }
+       });
+    </script>
+ </body>
+ 
