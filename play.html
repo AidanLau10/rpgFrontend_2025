@@ -96,7 +96,13 @@
 <script>
    var character = document.querySelector(".character");
    var map = document.querySelector(".map");
-
+const blockedZones = [
+   { x: 4, y: 5 },
+   { x: 5, y: 5 },
+   { x: 4, y: 6 },
+   { x: 5, y: 6 }
+   ];
+   // Array of map backgrounds (URLs)
    var mapBackgrounds = [
       "https://github.com/user-attachments/assets/3f2908dc-4da9-4376-bf82-62e4b63a2b26",
       "https://github.com/user-attachments/assets/a6c5b73a-64b1-4e5d-a548-d91766fdae00",
@@ -110,53 +116,46 @@
       map.style.backgroundImage = `url('${mapBackgrounds[currentMapIndex]}')`;
    }
 
+   // Start in the middle of the map
    var x = 90;
    var y = 80;
    var held_directions = [];
    var speed = 1;
 
-   
-   const blockedZones = [
-      { x: 5, y: 5 }, 
-      { x: 6, y: 5 },
-      { x: 5, y: 6 },
-      { x: 6, y: 6 }
-   ];
-
-   const isBlocked = (newX, newY) => {
-      return blockedZones.some(zone => zone.x === newX && zone.y === newY);
-   };
-
    const placeCharacter = () => {
       var pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
       const held_direction = held_directions[0];
-
-      let newX = x;
-      let newY = y;
       if (held_direction) {
-         if (held_direction === directions.right) { newX += speed; }
-         if (held_direction === directions.left) { newX -= speed; }
-         if (held_direction === directions.down) { newY += speed; }
-         if (held_direction === directions.up) { newY -= speed; }
-
-         if (!isBlocked(Math.floor(newX / 16), Math.floor(newY / 16))) {
-            x = newX;
-            y = newY;
-            character.setAttribute("facing", held_direction);
-         }
+         if (held_direction === directions.right) { x += speed; }
+         if (held_direction === directions.left) { x -= speed; }
+         if (held_direction === directions.down) { y += speed; }
+         if (held_direction === directions.up) { y -= speed; }
+         character.setAttribute("facing", held_direction);
       }
       character.setAttribute("walking", held_direction ? "true" : "false");
+
+      // Teleport when reaching the boundaries
+      var leftLimit = -8;
+      var rightLimit = (16 * 11) + 8;
+      var topLimit = -8 + 32;
+      var bottomLimit = (16 * 7);
+
+      if (x < leftLimit || x > rightLimit || y < topLimit || y > bottomLimit) {
+         switchMap();
+         x = 90;
+         y = 80;
+      }
 
       var camera_left = pixelSize * 66;
       var camera_top = pixelSize * 42;
       map.style.transform = `translate3d(${ -x * pixelSize + camera_left }px, ${ -y * pixelSize + camera_top }px, 0)`;
       character.style.transform = `translate3d(${ x * pixelSize }px, ${ y * pixelSize }px, 0)`;
-   };
+   }
 
    const step = () => {
       placeCharacter();
       window.requestAnimationFrame(step);
-   };
+   }
    step();
 
    const directions = {
@@ -164,13 +163,13 @@
       down: "down",
       left: "left",
       right: "right"
-   };
+   }
    const keys = {
       38: directions.up,
       37: directions.left,
       39: directions.right,
       40: directions.down
-   };
+   }
 
    document.addEventListener("keydown", (e) => {
       var dir = keys[e.which];
