@@ -64,6 +64,16 @@
       background-size: contain;
       z-index: 0;
    }
+   .computer {
+      width: calc(var(--grid-cell) * 2);
+      height: calc(var(--grid-cell) * 1.5);
+      position: absolute;
+      left: calc(var(--grid-cell) * 1.8);
+      top: calc(var(--grid-cell) * 3.5);
+      background: url('images/computer.png') no-repeat no-repeat;
+      background-size: contain;
+      z-index: 0;
+   }
    .tree2 {
       width: calc(var(--grid-cell) * 2);
       height: calc(var(--grid-cell) * 2);
@@ -142,13 +152,14 @@
       right:calc(var(--pixel-size) * 2);
       width: calc(var(--pixel-size) * 75)
    }
-   .popup {
+   .dialog-box {
       display: none;
       position: absolute;
       background-color: white;
       border: 2px solid black;
       padding: 10px;
       z-index: 10;
+      cursor: pointer;
    }
 </style>
 <body>
@@ -166,100 +177,143 @@
             <div class="tree"></div>
             <div class="tree2"></div>
             <div class="npc1"></div>
-            <div class="popup" id="popup">You found a hidden treasure!</div>
+            <div class="computer"></div>
+            <div class="dialog-box" id="dialog-box">Sup, can you help me real quick? (Click)</div>
          </div>
-   <script>
-      var character = document.querySelector(".character");
-      var map = document.querySelector(".map");
-      var popup = document.getElementById("popup");
-      var x = 90;
-      var y = 80;
-      var held_directions = [];
-      var speed = 1;
+         <script>
+            var character = document.querySelector(".character");
+            var map = document.querySelector(".map");
+            var dialogBox = document.getElementById("dialog-box");
+            var x = 90;
+            var y = 80;
+            var held_directions = [];
+            var speed = 1;
+         
+            // Dialogue steps
+            var dialogue = [ "aa", "I got a CSA Final with Mort, and I didn't study..", "I remember some questions but not the answers...", "help me answer this question pls"];
+            var dialogueIndex = 0;
+         
+            // Event listener for dialog box clicks
+            dialogBox.addEventListener("click", function() {
+               dialogueIndex++;
+               if (dialogueIndex < dialogue.length) {
+                  dialogBox.textContent = dialogue[dialogueIndex];
+               } else if (dialogueIndex === dialogue.length) {
+                  var playerName = prompt("Type your name!");
+                  console.log("Player name:", playerName);
+                  dialogBox.style.display = 'none';
+               }
+            });
+         
+            const blockedZones = [
+            { x: 17, y: 50 },
+            { x: 16, y: 96 },
+            { x: 152, y: 96 },   
+]           ;
 
-      const placeCharacter = () => {
-         var pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
-         const held_direction = held_directions[0];
-         if (held_direction) {
-            if (held_direction === directions.right) { x += speed; }
-            if (held_direction === directions.left) { x -= speed; }
-            if (held_direction === directions.down) { y += speed; }
-            if (held_direction === directions.up) { y -= speed; }
-            character.setAttribute("facing", held_direction);
-         }
-         character.setAttribute("walking", held_direction ? "true" : "false");
-
-         // Limits (gives the illusion of walls)
-         var leftLimit = -8;
-         var rightLimit = (16 * 11) + 8;
-         var topLimit = -8 + 32;
-         var bottomLimit = (16 * 7);
-         if (x < leftLimit) { x = leftLimit; }
-         if (x > rightLimit) { x = rightLimit; }
-         if (y < topLimit) { y = topLimit; }
-         if (y > bottomLimit) { y = bottomLimit; }
-
-         // Camera position
-         var camera_left = pixelSize * 66;
-         var camera_top = pixelSize * 42;
-         map.style.transform = `translate3d( ${-x * pixelSize + camera_left}px, ${-y * pixelSize + camera_top}px, 0 )`;
-         character.style.transform = `translate3d( ${x * pixelSize}px, ${y * pixelSize}px, 0 )`;
-
-         // Check if the character is in the popup area
-         checkPopupArea(x, y);
-      }
-
-      const checkPopupArea = (x, y) => {
-         // Define the area where the popup should appear
-         const popupArea = {
-            left: 32 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
-            right: 96 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
-            top: 192 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
-            bottom: 240 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'))
-         };                 
-
-         // Check if the character is within the popup area
-         if (x >= popupArea.left && x <= popupArea.right && y >= popupArea.top && y <= popupArea.bottom) {
-            popup.style.display = 'block'; // Show the popup
-            popup.style.left = `${x * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) + 10}px`;
-            popup.style.top = `${y * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) - 10}px`;
-         } else {
-            popup.style.display = 'none'; // Hide the popup
-         }
-      }
-
-      const step = () => {
-         placeCharacter();
-         window.requestAnimationFrame(() => {
+            const isBlocked = (newX, newY) => {
+               return blockedZones.some(zone => {
+                  return Math.abs(zone.x - newX) < 8 && Math.abs(zone.y - newY) < 8;
+               });
+            };
+         
+            const placeCharacter = () => {
+               var pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
+               const held_direction = held_directions[0];
+               let newX = x;
+               let newY = y;
+         
+               if (held_direction) {
+                  if (held_direction === directions.right) { newX += speed; }
+                  if (held_direction === directions.left) { newX -= speed; }
+                  if (held_direction === directions.down) { newY += speed; }
+                  if (held_direction === directions.up) { newY -= speed; }
+         
+                  // Check if the new position is blocked
+                  if (!isBlocked(newX, newY)) {
+                     x = newX;
+                     y = newY;
+                     character.setAttribute("facing", held_direction);
+                  }
+               }
+         
+               character.setAttribute("walking", held_direction ? "true" : "false");
+         
+               // Boundary limits to keep character in view
+               var leftLimit = -8;
+               var rightLimit = (16 * 11) + 8;
+               var topLimit = -8 + 32;
+               var bottomLimit = (16 * 7);
+               if (x < leftLimit) { x = leftLimit; }
+               if (x > rightLimit) { x = rightLimit; }
+               if (y < topLimit) { y = topLimit; }
+               if (y > bottomLimit) { y = bottomLimit; }
+         
+               // Camera position
+               var camera_left = pixelSize * 66;
+               var camera_top = pixelSize * 42;
+               map.style.transform = `translate3d( ${-x * pixelSize + camera_left}px, ${-y * pixelSize + camera_top}px, 0 )`;
+               character.style.transform = `translate3d( ${x * pixelSize}px, ${y * pixelSize}px, 0 )`;
+         
+               // Check if the character is in the dialog area
+               checkDialogArea(x, y);
+            };
+            const checkDialogArea = (x, y) => {
+               // Define the area where the dialog should appear
+               const dialogArea = {
+                  left: 32 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                  right: 100 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                  top: 192 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                  bottom: 240 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'))
+               };
+         
+               // Check if the character is within the dialog area
+               if (x >= dialogArea.left && x <= dialogArea.right && y >= dialogArea.top && y <= dialogArea.bottom) {
+                  dialogBox.style.display = 'block'; // Show the dialog box
+                  dialogBox.style.left = `${x * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) + 10}px`;
+                  dialogBox.style.top = `${y * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) - 10}px`;
+               } else {
+                  dialogBox.style.display = 'none'; // Hide the dialog box
+                  dialogueIndex = 0; // Reset dialogue if character leaves area
+               }
+            };
+         
+            const step = () => {
+               placeCharacter();
+               window.requestAnimationFrame(() => {
+                  step();
+               });
+            };
+         
             step();
-         })
-      }
-      step();
-
-      const directions = {
-         up: "up",
-         down: "down",
-         left: "left",
-         right: "right",
-      }
-      const keys = {
-         38: directions.up,
-         37: directions.left,
-         39: directions.right,
-         40: directions.down,
-      }
-      document.addEventListener("keydown", (e) => {
-         var dir = keys[e.which];
-         if (dir && held_directions.indexOf(dir) === -1) {
-            held_directions.unshift(dir)
-         }
-      })
-      document.addEventListener("keyup", (e) => {
-         var dir = keys[e.which];
-         var index = held_directions.indexOf(dir);
-         if (index > -1) {
-            held_directions.splice(index, 1)
-         }
-      });
-   </script>
+         
+            const directions = {
+               up: "up",
+               down: "down",
+               left: "left",
+               right: "right",
+            };
+         
+            const keys = {
+               38: directions.up,
+               37: directions.left,
+               39: directions.right,
+               40: directions.down,
+            };
+         
+            document.addEventListener("keydown", (e) => {
+               var dir = keys[e.which];
+               if (dir && held_directions.indexOf(dir) === -1) {
+                  held_directions.unshift(dir);
+               }
+            });
+         
+            document.addEventListener("keyup", (e) => {
+               var dir = keys[e.which];
+               var index = held_directions.indexOf(dir);
+               if (index > -1) {
+                  held_directions.splice(index, 1);
+               }
+            });
+         </script>         
 </body>
