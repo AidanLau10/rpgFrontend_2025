@@ -1,0 +1,352 @@
+<style>
+    :root {
+       --pixel-size: 2px;
+       --grid-cell: calc( var(--pixel-size) * 16);
+       --bg: #9FA7E4;
+    }
+    @media( min-width: 700px ) {
+       :root {
+          --pixel-size: 3px;
+       }
+    }
+    @media( min-width: 1000px ) {
+       :root {
+          --pixel-size: 4px;
+       }
+    }
+    html, body {
+       height: 100%;
+    }
+    body {
+       background: var(--bg);
+       display: flex;
+       align-items: center;
+       justify-content: center;
+    }
+    .pixel-art {
+       image-rendering: pixelated;
+    }
+    .frame {
+       width: calc(var(--pixel-size) * 160);
+       height: calc(var(--pixel-size) * 144);
+       outline: var(--pixel-size) solid #fff;
+       z-index:1;
+       position:relative;
+    }
+    .camera {
+       width: calc(var(--pixel-size) * 160);
+       height: calc(var(--pixel-size) * 144);
+       overflow: hidden;
+       background: #61DDF7;
+       position:relative;
+    }
+    .map {
+       image-rendering: pixelated;
+       background-image: url("https://assets.codepen.io/21542/CameraDemoMap.png");
+       background-size: 100%;
+       width: calc(13 * var(--grid-cell));
+       height: calc(10 * var(--grid-cell));
+       position: relative;
+    }
+    .character {
+       width: calc( var(--grid-cell)* 2 );
+       height: calc( var(--grid-cell)* 2 );
+       position: absolute;
+       overflow:hidden;
+    }
+    .npc1 {
+       width: calc(var(--grid-cell) * 2);
+       height: calc(var(--grid-cell) * 1.5);
+       position: absolute;
+       left: calc(var(--grid-cell) * 1.8);
+       top: calc(var(--grid-cell) * 3.5);
+       background: url('images/npc1.png') no-repeat no-repeat;
+       background-size: contain;
+       z-index: 0;
+    }
+    .computer {
+       width: calc(var(--grid-cell) * 2);
+       height: calc(var(--grid-cell) * 1.5);
+       position: absolute;
+       left: calc(var(--grid-cell) * 1.8);
+       top: calc(var(--grid-cell) * 3.5);
+       background: url('images/computer.png') no-repeat no-repeat;
+       background-size: contain;
+       z-index: 0;
+    }
+    .tree2 {
+       width: calc(var(--grid-cell) * 2);
+       height: calc(var(--grid-cell) * 2);
+       position: absolute;
+       left: calc(var(--grid-cell) * 9.5);
+       top: calc(var(--grid-cell) * 6);
+       background: url('images/tree.png') no-repeat no-repeat;
+       background-size: contain;
+       z-index: 0;
+    }
+    .tree {
+       width: calc(var(--grid-cell) * 2);
+       height: calc(var(--grid-cell) * 2);
+       position: absolute;
+       left: calc(var(--grid-cell) * 1);
+       top: calc(var(--grid-cell) * 6);
+       background: url('images/tree.png') no-repeat no-repeat;
+       background-size: contain;
+       z-index: 0;
+    }
+    .shadow {
+       width: calc( var(--grid-cell)* 2 );
+       height: calc( var(--grid-cell)* 2 );
+       position: absolute;
+       left:0;
+       top:0;
+       background: url("https://assets.codepen.io/21542/DemoRpgCharacterShadow.png") no-repeat no-repeat;
+       background-size: 100%;
+    }
+    .character_spritesheet {
+       position: absolute;
+       background: url("https://assets.codepen.io/21542/DemoRpgCharacter.png") no-repeat no-repeat;
+       background-size: 100%;
+       width: calc( var(--grid-cell)* 8 );
+       height: calc( var(--grid-cell)* 8 );
+    }
+    .character[facing="right"] .character_spritesheet {
+       background-position-y: calc( var(--pixel-size) * -32 );
+    }
+    .character[facing="up"] .character_spritesheet {
+       background-position-y: calc( var(--pixel-size) * -64 );
+    }
+    .character[facing="left"] .character_spritesheet {
+       background-position-y: calc( var(--pixel-size) * -96 );
+    }
+    .character[walking="true"] .character_spritesheet {
+       animation: walkAnimation 0.6s steps(4) infinite;
+    }
+    @keyframes walkAnimation {
+      from {
+        transform: translate3d(0%,0%,0);
+      }
+      to {
+        transform: translate3d(-100%,0%,0);
+      }
+    }
+    .corner_topleft {
+       top: calc(var(--pixel-size) * -1);
+       left: calc(var(--pixel-size) * -1);
+    }
+    .corner_topright {
+       top: calc(var(--pixel-size) * -1);
+       right: calc(var(--pixel-size) * -1);
+    }
+    .corner_bottomleft {
+       bottom: calc(var(--pixel-size) * -1);
+       left: calc(var(--pixel-size) * -1);
+    }
+    .corner_bottomright {
+       bottom: calc(var(--pixel-size) * -1);
+       right: calc(var(--pixel-size) * -1);
+    }
+    .headline {
+       position:absolute;
+       top:calc(var(--pixel-size) * 2);
+       right:calc(var(--pixel-size) * 2);
+       width: calc(var(--pixel-size) * 75)
+    }
+    .dialog-box {
+       display: none;
+       position: absolute;
+       background-color: white;
+       border: 2px solid black;
+       padding: 10px;
+       z-index: 10;
+       cursor: pointer;
+    }
+ </style>
+ <body>
+    <div class="frame">
+       <div class="corner_topleft"></div>
+       <div class="corner_topright"></div>
+       <div class="corner_bottomleft"></div>
+       <div class="corner_bottomright"></div>
+       <div class="camera">
+          <div class="map pixel-art">
+             <div class="character" facing="down" walking="true">
+                <div class="shadow pixel-art"></div>
+                <div class="character_spritesheet pixel-art"></div>
+             </div>
+             <div class="tree"></div>
+             <div class="tree2"></div>
+             <div class="npc1"></div>
+             <div class="computer"></div>
+             <div class="dialog-box" id="dialog-box">Sup, can you help me real quick? (Click)</div>
+          </div>
+          <script>
+            var character = document.querySelector(".character");
+            var map = document.querySelector(".map");
+            var dialogBox = document.getElementById("dialog-box");
+            var x = 90;
+            var y = 80;
+            var held_directions = [];
+            var speed = 1;
+         
+            // Function to submit answer to GPT API and receive a score or response
+            async function submitAnswerToGPT(answer) {
+               try {
+                  const response = await fetch("http://localhost:8085/api/gpt/grade", {
+                     method: "POST",
+                     headers: {
+                        "Content-Type": "application/json",
+                     },
+                     body: JSON.stringify({ answer: answer }),
+                  });
+         
+                  if (!response.ok) throw new Error("Network response was not ok");
+         
+                  const data = await response.json();
+                  return data.score; // Or any specific data you want from the GPT response
+               } catch (error) {
+                  console.error("Error submitting answer:", error);
+                  return "Error retrieving score"; // Provide fallback in case of error
+               }
+            }
+         
+            // Dialogue steps
+            var dialogue = [
+               "aa",
+               "I got a CSA Final with Mort, and I didn't study..",
+               "I remember some questions but not the answers...",
+               "help me answer this question pls"
+            ];
+            var dialogueIndex = 0;
+         
+            // Event listener for dialog box clicks
+            dialogBox.addEventListener("click", async function () {
+               dialogueIndex++;
+               if (dialogueIndex < dialogue.length) {
+                  dialogBox.textContent = dialogue[dialogueIndex];
+               } else if (dialogueIndex === dialogue.length) {
+                  var playerName = prompt("Type your name!");
+                  console.log("Player name:", playerName);
+                  dialogBox.style.display = 'none';
+         
+                  const userAnswer = prompt("What do you think the answer is?");
+                  if (userAnswer) {
+                     const score = await submitAnswerToGPT(userAnswer);
+                     alert(`Your answer scored: ${score}`);
+                  }
+               }
+            });
+         
+            const blockedZones = [
+               { x: 17, y: 50 },
+               { x: 16, y: 96 },
+               { x: 152, y: 96 }
+            ];
+         
+            const isBlocked = (newX, newY) => {
+               return blockedZones.some(zone => {
+                  return Math.abs(zone.x - newX) < 8 && Math.abs(zone.y - newY) < 8;
+               });
+            };
+         
+            const placeCharacter = () => {
+               var pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
+               const held_direction = held_directions[0];
+               let newX = x;
+               let newY = y;
+         
+               if (held_direction) {
+                  if (held_direction === directions.right) { newX += speed; }
+                  if (held_direction === directions.left) { newX -= speed; }
+                  if (held_direction === directions.down) { newY += speed; }
+                  if (held_direction === directions.up) { newY -= speed; }
+         
+                  // Check if the new position is blocked
+                  if (!isBlocked(newX, newY)) {
+                     x = newX;
+                     y = newY;
+                     character.setAttribute("facing", held_direction);
+                  }
+               }
+         
+               character.setAttribute("walking", held_direction ? "true" : "false");
+         
+               // Boundary limits to keep character in view
+               var leftLimit = -8;
+               var rightLimit = (16 * 11) + 8;
+               var topLimit = -8 + 32;
+               var bottomLimit = (16 * 7);
+               if (x < leftLimit) { x = leftLimit; }
+               if (x > rightLimit) { x = rightLimit; }
+               if (y < topLimit) { y = topLimit; }
+               if (y > bottomLimit) { y = bottomLimit; }
+         
+               // Camera position
+               var camera_left = pixelSize * 66;
+               var camera_top = pixelSize * 42;
+               map.style.transform = `translate3d( ${-x * pixelSize + camera_left}px, ${-y * pixelSize + camera_top}px, 0 )`;
+               character.style.transform = `translate3d( ${x * pixelSize}px, ${y * pixelSize}px, 0 )`;
+         
+               // Check if the character is in the dialog area
+               checkDialogArea(x, y);
+            };
+         
+            const checkDialogArea = (x, y) => {
+               // Define the area where the dialog should appear
+               const dialogArea = {
+                  left: 32 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                  right: 100 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                  top: 192 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                  bottom: 240 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'))
+               };
+         
+               // Check if the character is within the dialog area
+               if (x >= dialogArea.left && x <= dialogArea.right && y >= dialogArea.top && y <= dialogArea.bottom) {
+                  dialogBox.style.display = 'block'; // Show the dialog box
+                  dialogBox.style.left = `${x * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) + 10}px`;
+                  dialogBox.style.top = `${y * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) - 10}px`;
+               } else {
+                  dialogBox.style.display = 'none'; // Hide the dialog box
+                  dialogueIndex = 0; // Reset dialogue if character leaves area
+               }
+            };
+         
+            const step = () => {
+               placeCharacter();
+               window.requestAnimationFrame(() => {
+                  step();
+               });
+            };
+         
+            step();
+         
+            const directions = {
+               up: "up",
+               down: "down",
+               left: "left",
+               right: "right",
+            };
+         
+            const keys = {
+               38: directions.up,
+               37: directions.left,
+               39: directions.right,
+               40: directions.down,
+            };
+         
+            document.addEventListener("keydown", (e) => {
+               var dir = keys[e.which];
+               if (dir && held_directions.indexOf(dir) === -1) {
+                  held_directions.unshift(dir);
+               }
+            });
+         
+            document.addEventListener("keyup", (e) => {
+               var dir = keys[e.which];
+               var index = held_directions.indexOf(dir);
+               if (index > -1) {
+                  held_directions.splice(index, 1);
+               }
+            });
+         </script>
+ </body>
