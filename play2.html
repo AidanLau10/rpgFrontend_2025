@@ -221,21 +221,42 @@
          
             // Event listener for dialog box clicks
             dialogBox.addEventListener("click", async function () {
-               dialogueIndex++;
-               if (dialogueIndex < dialogue.length) {
-                  dialogBox.textContent = dialogue[dialogueIndex];
-               } else if (dialogueIndex === dialogue.length) {
-                  var playerName = prompt("Type your name!");
-                  console.log("Player name:", playerName);
-                  dialogBox.style.display = 'none';
-         
-                  const userAnswer = prompt("What do you think the answer is?");
-                  if (userAnswer) {
-                     const score = await submitAnswerToGPT(userAnswer);
-                     alert(`Your answer scored: ${score}`);
-                  }
-               }
-            });
+   dialogueIndex++;
+   if (dialogueIndex < dialogue.length) {
+      dialogBox.textContent = dialogue[dialogueIndex];
+   } else if (dialogueIndex === dialogue.length) {
+      var playerName = prompt("Type your name!");
+      console.log("Player name:", playerName);
+      dialogBox.style.display = 'none';
+
+      const userAnswer = prompt("Enter your code:");
+      if (userAnswer) {
+         const score = await submitAnswerToGPT(userAnswer);
+         alert(`Your code scored: ${score}`);
+      }
+   }
+});
+
+// Function to submit answer to GPT API with JSON structure as specified
+async function submitAnswerToGPT(answer) {
+   try {
+      const response = await fetch("http://localhost:8085/api/gpt/grade", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ code: answer }) // Send answer as "code" in JSON
+      });
+
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const data = await response.json();
+      return data.score;
+   } catch (error) {
+      console.error("Error submitting answer:", error);
+      return "Error retrieving score";
+   }
+}
          
             const blockedZones = [
                { x: 17, y: 50 },
