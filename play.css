@@ -1,0 +1,201 @@
+   :root {
+      --pixel-size: 2px;
+      --grid-cell: calc( var(--pixel-size) * 16);
+      --bg: #9FA7E4;
+   }
+   @media( min-width: 700px ) {
+      :root {
+         --pixel-size: 3px;
+      }
+   }
+   @media( min-width: 1000px ) {
+      :root {
+         --pixel-size: 4px;
+      }
+   }
+   html, body {
+      height: 100%;
+   }
+   body {
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+   }
+   .pixel-art {
+      image-rendering: pixelated;
+   }
+   .frame {
+      width: calc(var(--pixel-size) * 160);
+      height: calc(var(--pixel-size) * 144);
+      outline: var(--pixel-size) solid #fff;
+      z-index:1;
+      position:relative;
+   }
+   .camera {
+      width: calc(var(--pixel-size) * 160);
+      height: calc(var(--pixel-size) * 144);
+      overflow: hidden;
+      background: #61DDF7;
+      position:relative;
+   }
+   .map {
+      image-rendering: pixelated;
+      background-image: url("https://assets.codepen.io/21542/CameraDemoMap.png");
+      background-size: 100%;
+      width: calc(13 * var(--grid-cell));
+      height: calc(10 * var(--grid-cell));
+      position: relative;
+   }
+   .character {
+      width: calc( var(--grid-cell)* 2 );
+      height: calc( var(--grid-cell)* 2 );
+      position: absolute;
+      overflow:hidden;
+   }
+   .npc1 {
+      width: calc(var(--grid-cell) * 2);
+      height: calc(var(--grid-cell) * 1.5);
+      position: absolute;
+      left: calc(var(--grid-cell) * 1.8);
+      top: calc(var(--grid-cell) * 3.5);
+      background: url('images/npc1.png') no-repeat no-repeat;
+      background-size: contain;
+      z-index: 0;
+   }
+   .npc2 {
+      width: calc(var(--grid-cell) * 2);
+      height: calc(var(--grid-cell) * 1.5);
+      position: absolute;
+      left: calc(var(--grid-cell) * 8);
+      top: calc(var(--grid-cell) * 2);
+      background: url('images/npc2.png') no-repeat no-repeat;
+      background-size: contain;
+      z-index: 0;
+   }
+   .computer {
+      width: calc(var(--grid-cell) * 1);
+      height: calc(var(--grid-cell) * 0.8);
+      position: absolute;
+      left: calc(var(--grid-cell) * 11);
+      top: calc(var(--grid-cell) * 4.5);
+      background: url('images/computer.png') no-repeat no-repeat;
+      background-size: contain;
+      z-index: 0;
+   }
+   .tree2 {
+      width: calc(var(--grid-cell) * 2);
+      height: calc(var(--grid-cell) * 2);
+      position: absolute;
+      left: calc(var(--grid-cell) * 9.5);
+      top: calc(var(--grid-cell) * 6);
+      background: url('images/tree.png') no-repeat no-repeat;
+      background-size: contain;
+      z-index: 0;
+   }
+   .tree {
+      width: calc(var(--grid-cell) * 2);
+      height: calc(var(--grid-cell) * 2);
+      position: absolute;
+      left: calc(var(--grid-cell) * 1);
+      top: calc(var(--grid-cell) * 6);
+      background: url('images/tree.png') no-repeat no-repeat;
+      background-size: contain;
+      z-index: 0;
+   }
+   .dnhs {
+   width: calc(var(--grid-cell) * 2);
+   height: calc(var(--grid-cell) * 1.5);
+   position: absolute;
+   left: calc(var(--grid-cell) * 5.5);
+   top: calc(var(--grid-cell) * 0.05);
+   background: url('images/dnhs.png') no-repeat no-repeat;
+   background-size: contain;
+   z-index: 0;
+   }
+   .shadow {
+      width: calc( var(--grid-cell)* 2 );
+      height: calc( var(--grid-cell)* 2 );
+      position: absolute;
+      left:0;
+      top:0;
+      background: url("https://assets.codepen.io/21542/DemoRpgCharacterShadow.png") no-repeat no-repeat;
+      background-size: 100%;
+   }
+   .leaderboard-button {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: #fff;
+      border: 2px solid black;
+      padding: 10px;
+      cursor: pointer;
+      z-index: 100;
+   }
+   .leaderboard-box {
+      display: none;
+      position: absolute;
+      background-color: white;
+      border: 2px solid black;
+      padding: 10px;
+      z-index: 10;
+      cursor: pointer;
+   }
+   .character_spritesheet {
+      position: absolute;
+      background: url("https://assets.codepen.io/21542/DemoRpgCharacter.png") no-repeat no-repeat;
+      background-size: 100%;
+      width: calc( var(--grid-cell)* 8 );
+      height: calc( var(--grid-cell)* 8 );
+   }
+   .character[facing="right"] .character_spritesheet {
+      background-position-y: calc( var(--pixel-size) * -32 );
+   }
+   .character[facing="up"] .character_spritesheet {
+      background-position-y: calc( var(--pixel-size) * -64 );
+   }
+   .character[facing="left"] .character_spritesheet {
+      background-position-y: calc( var(--pixel-size) * -96 );
+   }
+   .character[walking="true"] .character_spritesheet {
+      animation: walkAnimation 0.6s steps(4) infinite;
+   }
+   @keyframes walkAnimation {
+     from {
+       transform: translate3d(0%,0%,0);
+     }
+     to {
+       transform: translate3d(-100%,0%,0);
+     }
+   }
+   .corner_topleft {
+      top: calc(var(--pixel-size) * -1);
+      left: calc(var(--pixel-size) * -1);
+   }
+   .corner_topright {
+      top: calc(var(--pixel-size) * -1);
+      right: calc(var(--pixel-size) * -1);
+   }
+   .corner_bottomleft {
+      bottom: calc(var(--pixel-size) * -1);
+      left: calc(var(--pixel-size) * -1);
+   }
+   .corner_bottomright {
+      bottom: calc(var(--pixel-size) * -1);
+      right: calc(var(--pixel-size) * -1);
+   }
+   .headline {
+      position:absolute;
+      top:calc(var(--pixel-size) * 2);
+      right:calc(var(--pixel-size) * 2);
+      width: calc(var(--pixel-size) * 75)
+   }
+   .dialog-box {
+      display: none;
+      position: absolute;
+      background-color: white;
+      border: 2px solid black;
+      padding: 10px;
+      z-index: 10;
+      cursor: pointer;
+   }
