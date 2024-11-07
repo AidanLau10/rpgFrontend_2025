@@ -181,139 +181,193 @@
             <div class="dialog-box" id="dialog-box">Sup, can you help me real quick? (Click)</div>
          </div>
          <script>
-            var character = document.querySelector(".character");
-            var map = document.querySelector(".map");
-            var dialogBox = document.getElementById("dialog-box");
-            var x = 90;
-            var y = 80;
-            var held_directions = [];
-            var speed = 1;
-         
-            // Dialogue steps
-            var dialogue = [ "aa", "I got a CSA Final with Mort, and I didn't study..", "I remember some questions but not the answers...", "help me answer this question pls"];
-            var dialogueIndex = 0;
-         
-            // Event listener for dialog box clicks
-            dialogBox.addEventListener("click", function() {
-               dialogueIndex++;
-               if (dialogueIndex < dialogue.length) {
-                  dialogBox.textContent = dialogue[dialogueIndex];
-               } else if (dialogueIndex === dialogue.length) {
-                  var playerName = prompt("Type your name!");
-                  console.log("Player name:", playerName);
-                  dialogBox.style.display = 'none';
-               }
-            });
-         
-            const blockedZones = [
-            { x: 17, y: 50 },
-            { x: 16, y: 96 },
-            { x: 152, y: 96 },   
-]           ;
+           var character = document.querySelector(".character");
+           var map = document.querySelector(".map");
+           var dialogBox = document.getElementById("dialog-box");
+           var x = 90;
+           var y = 80;
+           var held_directions = [];
+           var speed = 1;
+        
+           // Function to submit answer to GPT API and receive a score or response
+           async function submitAnswerToGPT(answer) {
+              try {
+                 const response = await fetch("http://localhost:8085/api/gpt/grade", {
+                    method: "POST",
+                    headers: {
+                       "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ answer: answer }),
+                 });
+        
+                 if (!response.ok) throw new Error("Network response was not ok");
+        
+                 const data = await response.json();
+                 return data.score; // Or any specific data you want from the GPT response
+              } catch (error) {
+                 console.error("Error submitting answer:", error);
+                 return "Error retrieving score"; // Provide fallback in case of error
+              }
+           }
+        
+           // Dialogue steps
+           var dialogue = [
+              "aa",
+              "I got a CSA Final with Mort, and I didn't study..",
+              "I remember some questions but not the answers...",
+              "help me answer this question pls"
+           ];
+           var dialogueIndex = 0;
+        
+           // Event listener for dialog box clicks
+           dialogBox.addEventListener("click", async function () {
+  dialogueIndex++;
+  if (dialogueIndex < dialogue.length) {
+     dialogBox.textContent = dialogue[dialogueIndex];
+  } else if (dialogueIndex === dialogue.length) {
+     var playerName = prompt("Type your name!");
+     console.log("Player name:", playerName);
+     dialogBox.style.display = 'none';
 
-            const isBlocked = (newX, newY) => {
-               return blockedZones.some(zone => {
-                  return Math.abs(zone.x - newX) < 8 && Math.abs(zone.y - newY) < 8;
-               });
-            };
-         
-            const placeCharacter = () => {
-               var pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
-               const held_direction = held_directions[0];
-               let newX = x;
-               let newY = y;
-         
-               if (held_direction) {
-                  if (held_direction === directions.right) { newX += speed; }
-                  if (held_direction === directions.left) { newX -= speed; }
-                  if (held_direction === directions.down) { newY += speed; }
-                  if (held_direction === directions.up) { newY -= speed; }
-         
-                  // Check if the new position is blocked
-                  if (!isBlocked(newX, newY)) {
-                     x = newX;
-                     y = newY;
-                     character.setAttribute("facing", held_direction);
-                  }
-               }
-         
-               character.setAttribute("walking", held_direction ? "true" : "false");
-         
-               // Boundary limits to keep character in view
-               var leftLimit = -8;
-               var rightLimit = (16 * 11) + 8;
-               var topLimit = -8 + 32;
-               var bottomLimit = (16 * 7);
-               if (x < leftLimit) { x = leftLimit; }
-               if (x > rightLimit) { x = rightLimit; }
-               if (y < topLimit) { y = topLimit; }
-               if (y > bottomLimit) { y = bottomLimit; }
-         
-               // Camera position
-               var camera_left = pixelSize * 66;
-               var camera_top = pixelSize * 42;
-               map.style.transform = `translate3d( ${-x * pixelSize + camera_left}px, ${-y * pixelSize + camera_top}px, 0 )`;
-               character.style.transform = `translate3d( ${x * pixelSize}px, ${y * pixelSize}px, 0 )`;
-         
-               // Check if the character is in the dialog area
-               checkDialogArea(x, y);
-            };
-            const checkDialogArea = (x, y) => {
-               // Define the area where the dialog should appear
-               const dialogArea = {
-                  left: 32 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
-                  right: 100 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
-                  top: 192 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
-                  bottom: 240 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'))
-               };
-         
-               // Check if the character is within the dialog area
-               if (x >= dialogArea.left && x <= dialogArea.right && y >= dialogArea.top && y <= dialogArea.bottom) {
-                  dialogBox.style.display = 'block'; // Show the dialog box
-                  dialogBox.style.left = `${x * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) + 10}px`;
-                  dialogBox.style.top = `${y * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) - 10}px`;
-               } else {
-                  dialogBox.style.display = 'none'; // Hide the dialog box
-                  dialogueIndex = 0; // Reset dialogue if character leaves area
-               }
-            };
-         
-            const step = () => {
-               placeCharacter();
-               window.requestAnimationFrame(() => {
-                  step();
-               });
-            };
-         
-            step();
-         
-            const directions = {
-               up: "up",
-               down: "down",
-               left: "left",
-               right: "right",
-            };
-         
-            const keys = {
-               38: directions.up,
-               37: directions.left,
-               39: directions.right,
-               40: directions.down,
-            };
-         
-            document.addEventListener("keydown", (e) => {
-               var dir = keys[e.which];
-               if (dir && held_directions.indexOf(dir) === -1) {
-                  held_directions.unshift(dir);
-               }
-            });
-         
-            document.addEventListener("keyup", (e) => {
-               var dir = keys[e.which];
-               var index = held_directions.indexOf(dir);
-               if (index > -1) {
-                  held_directions.splice(index, 1);
-               }
-            });
-         </script>         
+     const userAnswer = prompt("Enter your code:");
+     if (userAnswer) {
+        const score = await submitAnswerToGPT(userAnswer);
+        alert(`Your code scored: ${score}`);
+     }
+  }
+});
+
+// Function to submit answer to GPT API with JSON structure as specified
+async function submitAnswerToGPT(answer) {
+  try {
+     const response = await fetch("http://localhost:8085/api/gpt/grade", {
+        method: "POST",
+        headers: {
+           "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: answer }) // Send answer as "code" in JSON
+     });
+
+     if (!response.ok) throw new Error("Network response was not ok");
+
+     const data = await response.json();
+     return data.score;
+  } catch (error) {
+     console.error("Error submitting answer:", error);
+     return "Error retrieving score";
+  }
+}
+        
+           const blockedZones = [
+              { x: 17, y: 50 },
+              { x: 16, y: 96 },
+              { x: 152, y: 96 }
+           ];
+        
+           const isBlocked = (newX, newY) => {
+              return blockedZones.some(zone => {
+                 return Math.abs(zone.x - newX) < 8 && Math.abs(zone.y - newY) < 8;
+              });
+           };
+        
+           const placeCharacter = () => {
+              var pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
+              const held_direction = held_directions[0];
+              let newX = x;
+              let newY = y;
+        
+              if (held_direction) {
+                 if (held_direction === directions.right) { newX += speed; }
+                 if (held_direction === directions.left) { newX -= speed; }
+                 if (held_direction === directions.down) { newY += speed; }
+                 if (held_direction === directions.up) { newY -= speed; }
+        
+                 // Check if the new position is blocked
+                 if (!isBlocked(newX, newY)) {
+                    x = newX;
+                    y = newY;
+                    character.setAttribute("facing", held_direction);
+                 }
+              }
+        
+              character.setAttribute("walking", held_direction ? "true" : "false");
+        
+              // Boundary limits to keep character in view
+              var leftLimit = -8;
+              var rightLimit = (16 * 11) + 8;
+              var topLimit = -8 + 32;
+              var bottomLimit = (16 * 7);
+              if (x < leftLimit) { x = leftLimit; }
+              if (x > rightLimit) { x = rightLimit; }
+              if (y < topLimit) { y = topLimit; }
+              if (y > bottomLimit) { y = bottomLimit; }
+        
+              // Camera position
+              var camera_left = pixelSize * 66;
+              var camera_top = pixelSize * 42;
+              map.style.transform = `translate3d( ${-x * pixelSize + camera_left}px, ${-y * pixelSize + camera_top}px, 0 )`;
+              character.style.transform = `translate3d( ${x * pixelSize}px, ${y * pixelSize}px, 0 )`;
+        
+              // Check if the character is in the dialog area
+              checkDialogArea(x, y);
+           };
+        
+           const checkDialogArea = (x, y) => {
+              // Define the area where the dialog should appear
+              const dialogArea = {
+                 left: 32 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                 right: 100 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                 top: 192 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')),
+                 bottom: 240 / parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'))
+              };
+        
+              // Check if the character is within the dialog area
+              if (x >= dialogArea.left && x <= dialogArea.right && y >= dialogArea.top && y <= dialogArea.bottom) {
+                 dialogBox.style.display = 'block'; // Show the dialog box
+                 dialogBox.style.left = `${x * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) + 10}px`;
+                 dialogBox.style.top = `${y * parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size')) - 10}px`;
+              } else {
+                 dialogBox.style.display = 'none'; // Hide the dialog box
+                 dialogueIndex = 0; // Reset dialogue if character leaves area
+              }
+           };
+        
+           const step = () => {
+              placeCharacter();
+              window.requestAnimationFrame(() => {
+                 step();
+              });
+           };
+        
+           step();
+        
+           const directions = {
+              up: "up",
+              down: "down",
+              left: "left",
+              right: "right",
+           };
+        
+           const keys = {
+              38: directions.up,
+              37: directions.left,
+              39: directions.right,
+              40: directions.down,
+           };
+        
+           document.addEventListener("keydown", (e) => {
+              var dir = keys[e.which];
+              if (dir && held_directions.indexOf(dir) === -1) {
+                 held_directions.unshift(dir);
+              }
+           });
+        
+           document.addEventListener("keyup", (e) => {
+              var dir = keys[e.which];
+              var index = held_directions.indexOf(dir);
+              if (index > -1) {
+                 held_directions.splice(index, 1);
+              }
+           });
+        </script>
 </body>
