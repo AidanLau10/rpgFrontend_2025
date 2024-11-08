@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -112,18 +111,17 @@
             <!-- Message will be displayed here if there’s an error -->
         </div>
     </div>
-
     <script>
-        let userId = null;
+        let userId = null; // Initialize a variable to store the user id. Null= no specific value 
 
         function setUserId() {
-            const input = document.getElementById("user-id-input").value;
-            if (input) {
-                userId = parseInt(input);
+            const input = document.getElementById("user-id-input").value; // gets the value from what the user inputs
+            if (input) { // makes sure input box is not empty 
+                userId = parseInt(input); // converts the input into an integar, and stores it 
                 document.getElementById("streak-section").classList.remove("hidden");
-                fetchUserInfo(); // Fetch user info based on entered user ID
+                fetchUserInfo(); // fetches the users data based on inputted id
             } else {
-                alert("Please enter a valid User ID.");
+                alert("Please enter a valid User ID."); // displays a error message if the input is not valid. 
             }
         }
 
@@ -131,12 +129,12 @@
             if (!userId) return;
 
             fetch(`http://127.0.0.1:8085/rpg_streak/streak?userId=${userId}`, {
-                method: 'GET',
+                method: 'GET', // get request to fetch the users data 
                 headers: {
                     'Content-Type': 'application/json'
                 }
             })
-            .then(response => {
+            .then(response => { // what will happen if theres an error. 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch user information: ${response.statusText}`);
                 }
@@ -144,65 +142,65 @@
             })
             .then(data => {
                 console.log("Data received from backend:", data); // Log the response data
-                const currentStreak = data.currentStreak ?? 0;
-                document.getElementById('current-streak').textContent = currentStreak;
+                const currentStreak = data.currentStreak ?? 0; // if theres no streak it will make it 0 
+                document.getElementById('current-streak').textContent = currentStreak; // displays current streak in the HTML frontend 
                 document.getElementById('message').textContent = ""; // Clear any previous error messages
             })
-            .catch(error => {
+            .catch(error => { //handles errors during this request 
                 console.error('Error:', error);
                 document.getElementById('message').textContent = 'Failed to load user information.';
             });
         }
 
-        function addStreak() {
-            if (!userId) return;
+        function addStreak() { // function to add 1 to the streak each time the button is pressed 
+            if (!userId) return; 
 
             fetch("http://127.0.0.1:8085/rpg_streak/streak", {
-                method: 'POST',
+                method: 'POST', // 
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({  
                     userId: userId,
                     currentStreak: 1,
                     maxStreak: 5
                 })
             })
-            .then(response => {
+            .then(response => { // checks if response is ok 
                 if (!response.ok) {
                     return response.text().then(text => { throw new Error(`Failed to update streak: ${text}`); });
                 }
                 return response.json();
             })
             .then(data => {
-                const currentStreak = data.currentStreak ?? 0;
-                document.getElementById('current-streak').textContent = currentStreak;
-                document.getElementById('message').textContent = "Streak updated successfully!";
+                const currentStreak = data.currentStreak ?? 0; // gets current streak from backend 
+                document.getElementById('current-streak').textContent = currentStreak; // displays teh updated streak in the HTML
+                document.getElementById('message').textContent = "Streak updated successfully!"; // gives success message 
             })
-            .catch(error => {
+            .catch(error => { // handles errors when fetching 
                 console.error('Error updating streak:', error);
                 document.getElementById('message').textContent = `Failed to update streak: ${error.message}`;
             });
         }
 
-        function toggleMaxStreak() {
-            const maxStreakElement = document.getElementById("max-streak");
-            const button = document.getElementById("toggle-max-streak");
-            const maxStreakValueElement = document.getElementById("max-streak-value");
-            if (maxStreakElement.classList.contains("hidden")) {
-                fetch(`http://127.0.0.1:8085/rpg_streak/streak?userId=${userId}`)
-                .then(response => response.json())
+        function toggleMaxStreak() { 
+            const maxStreakElement = document.getElementById("max-streak"); // gets the element to display the max streak 
+            const button = document.getElementById("toggle-max-streak"); // gets toggle button element 
+            const maxStreakValueElement = document.getElementById("max-streak-value"); // gets the element to show max streak 
+            if (maxStreakElement.classList.contains("hidden")) { // checks if teh max streak is being shown or hidden 
+                fetch(`http://127.0.0.1:8085/rpg_streak/streak?userId=${userId}`) // IF its hidden it fetches the streak from the backend 
+                .then(response => response.json()) 
                 .then(data => {
-                    maxStreakValueElement.textContent = data.maxStreak ?? 0;
-                    maxStreakElement.classList.remove("hidden");
+                    maxStreakValueElement.textContent = data.maxStreak ?? 0; // display max streak or 0 
+                    maxStreakElement.classList.remove("hidden"); 
                     button.textContent = "HIDE HIGHEST STREAK";
-                    button.setAttribute("data-text", "HIDE HIGHEST STREAK");
+                    button.setAttribute("data-text", "HIDE HIGHEST STREAK"); // Change button text to indicate hiding
                 })
                 .catch(error => console.error('Error:', error));
             } else {
-                maxStreakElement.classList.add("hidden");
-                button.textContent = "SHOW HIGHEST STREAK";
-                button.setAttribute("data-text", "SHOW HIGHEST STREAK");
+                maxStreakElement.classList.add("hidden"); // hide the max streak 
+                button.textContent = "SHOW HIGHEST STREAK"; // changes button to show highest streak 
+                button.setAttribute("data-text", "SHOW HIGHEST STREAK"); 
             }
         }
     </script>
