@@ -181,4 +181,64 @@
                }
             });
          </script>
+
+<script type="module">
+   import { javaURI, fetchOptions } from 'http://127.0.0.1:5500/assets/js/api/config.js';
+   function getChatScoreBalance() {
+   
+      const playerid = 1
+      const getChatScoreUrl = `${javaURI}/rpg_answer/getChatScore/` + playerid;
+      const getBadgeCountUrl = `${javaURI}/rpg_answer/getBalance/` + playerid;
+      
+   
+      fetch(getChatScoreUrl, fetchOptions)
+      .then(response => {
+          // Handle server response
+          if (response.status !== 200) {
+              const errorMsg = 'Database response error: ' + response.status;
+              console.log(errorMsg);
+              document.getElementById("chatScore").innerHTML = 10;
+          }
+   
+          // Response contains valid result
+          response.json().then(data => {
+              if (data !== null) {
+                  console.log(data)
+                  document.getElementById("chatScore").innerHTML = data;
+              }
+          });
+      })
+      .catch(error => {
+          // Handle fetch errors
+          console.error('Fetch error:', error);
+      });
+   
+   
+   fetch(getBadgeCountUrl, fetchOptions)
+      .then(response => {
+          // Handle server response
+          if (response.status !== 200) {
+              const errorMsg = 'Database response error: ' + response.status;
+              console.log(errorMsg);
+              document.getElementById("balance").innerHTML = 0;
+          }
+   
+          // Response contains valid result
+          response.json().then(data => {
+              if (data !== null) {
+                  console.log(data)
+                  document.getElementById("balance").innerHTML = data;
+              }
+          });
+      })
+      .catch(error => {
+          // Handle fetch errors
+          console.error('Fetch error:', error);
+      });
+   }
+   
+   
+   getChatScoreBalance()
+   
+   </script>
 </body>
