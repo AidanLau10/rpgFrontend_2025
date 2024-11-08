@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop</title>
+    <style>
+        /* Basic styles for layout and elements */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f7f7f7;
+            margin: 0;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .balance-container, .conversion-container, .shop-items {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .balance-container p, .conversion-container p {
+            font-size: 1.2em;
+            margin: 5px 0;
+            color: #444;
+        }
+
+        .shop-items h2, .conversion-container h2 {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .shop-items .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .shop-items .item:last-child {
+            border-bottom: none;
+        }
+
+        .shop-items button, .conversion-container button {
+            padding: 8px 12px;
+            font-size: 1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .shop-items button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Responsive design */
+        @media (min-width: 600px) {
+            .container {
+                width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Shop</h1>
+    <!-- Balance and Chat Score Section -->
+    <div class="balance-container">
+        <p>Balance: <span id="balance">100</span></p>
+        <p>Chat Score: <span id="chatScore">500</span></p>
+    </div>
+
+    <!-- Conversion Section -->
+    <div class="conversion-container">
+        <h2>Convert Chat Score to Balance</h2>
+        <p>Rate: 100 Chat Score = 10 Balance</p>
+        <button onclick="convertScore()">Convert</button>
+    </div>
+
+    <!-- Items for Sale -->
+    <div class="shop-items">
+        <h2>Items for Sale</h2>
+        <div class="item">
+            <span>Item 1 (50 Balance)</span>
+            <button onclick="purchaseItem(50)">Buy</button>
+        </div>
+        <div class="item">
+            <span>Item 2 (100 Balance)</span>
+            <button onclick="purchaseItem(100)">Buy</button>
+        </div>
+        <div class="item">
+            <span>Item 3 (200 Balance)</span>
+            <button onclick="purchaseItem(200)">Buy</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize balance and chat score
+    let balance = 100;
+    let chatScore = 500;
+
+    // Function to update balance and chat score in the DOM
+    function updateDisplay() {
+        document.getElementById('balance').textContent = balance;
+        document.getElementById('chatScore').textContent = chatScore;
+    }
+
+    // Convert chat score to balance
+    function convertScore() {
+        const conversionRate = 100; // 100 chat score = 10 balance
+        if (chatScore >= conversionRate) {
+            chatScore -= conversionRate;
+            balance += 10; // 10 balance for every 100 chat score
+            updateDisplay();
+        } else {
+            alert("Not enough Chat Score to convert.");
+        }
+    }
+
+    // Purchase an item
+    function purchaseItem(cost) {
+        if (balance >= cost) {
+            balance -= cost;
+            updateDisplay();
+            alert("Purchase successful!");
+        } else {
+            alert("Not enough Balance.");
+        }
+    }
+
+
+</script>
+
+</body>
+</html>

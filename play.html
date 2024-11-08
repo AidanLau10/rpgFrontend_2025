@@ -5,7 +5,9 @@
 
    <div class="chat-score">ChatGPT Score: <span id="chatScore"></span></div>
    <div class="balance">Balance: <span id="balance"></span></div>
-
+   <div class="button-container">
+      <button onclick="goToShop()">Go to Shop</button>
+  </div>
 
    <div class="frame">
       <div class="corner_topleft"></div>
@@ -185,6 +187,10 @@
                   held_directions.splice(index, 1);
                }
             });
+
+            function goToShop() {
+               window.location.href = 'http://127.0.0.1:5500/shop.html';
+           }
          </script>
 
 <script type="module">
