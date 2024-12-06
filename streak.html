@@ -1,0 +1,210 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Streak Information</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('https://img.freepik.com/premium-vector/vector-binary-code-green-background-big-data-programming-hacking-deep-decryption-encryption-computer-streaming-numbers-1-0-coding-hacker-concept_167184-283.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #e94be8;
+            text-shadow: 2px 2px 5px #00e571, -2px -2px 5px #8b00ff;
+            margin-bottom: 30px;
+        }
+
+        .glitch-button {
+            font-size: 1.2rem;
+            color: white;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+            position: relative;
+            text-shadow: 2px 2px 5px #00e571, -2px -2px 5px #e94be8;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        .glitch-button:hover {
+            color: #e94be8;
+            text-shadow: 4px 4px 10px #00e571, -4px -4px 10px #8b00ff;
+        }
+
+        .glitch-button:after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            color: #00e571;
+            opacity: 0.7;
+            z-index: -1;
+            text-shadow: -3px -3px 0px #8b00ff, 3px 3px 0px #e94be8;
+            clip-path: inset(50% 50% 50% 50%);
+            animation: glitch 1s infinite;
+        }
+
+        .user-info {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: #ffffff;
+            text-align: center;
+            text-shadow: 2px 2px 5px #00e571;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: red;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes glitch {
+            0% { clip-path: inset(30% 0 40% 0); transform: translate(-2px, -2px); }
+            20% { clip-path: inset(10% 0 50% 0); transform: translate(2px, 2px); }
+            40% { clip-path: inset(40% 0 30% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(20% 0 40% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(40% 0 20% 0); transform: translate(-2px, -2px); }
+            100% { clip-path: inset(30% 0 30% 0); transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>User Streak Information</h1>
+
+    <!-- User ID Input Section -->
+    <div>
+        <label for="user-id-input"><strong>Enter User ID:</strong></label>
+        <input type="number" id="user-id-input" placeholder="User ID" />
+        <button class="glitch-button" data-text="SUBMIT" onclick="setUserId()">SUBMIT</button>
+    </div>
+
+    <!-- Streak Information Section -->
+    <div id="streak-section" class="hidden">
+        <button class="glitch-button" id="add-streak" data-text="ADD STREAK" onclick="addStreak()">ADD STREAK</button>
+        <button class="glitch-button" id="toggle-max-streak" data-text="SHOW HIGHEST STREAK" onclick="toggleMaxStreak()">SHOW HIGHEST STREAK</button>
+
+        <div class="user-info">
+            <p><strong>Current Streak:</strong> <span id="current-streak">0</span></p>
+            <p id="max-streak" class="hidden"><strong>Highest Streak:</strong> <span id="max-streak-value">0</span></p>
+        </div>
+        <div class="message" id="message">
+            <!-- Message will be displayed here if there’s an error -->
+        </div>
+    </div>
+    <script>
+        let userId = null; // Initialize a variable to store the user id. Null= no specific value 
+
+        function setUserId() {
+            const input = document.getElementById("user-id-input").value; // gets the value from what the user inputs
+            if (input) { // makes sure input box is not empty 
+                userId = parseInt(input); // converts the input into an integar, and stores it 
+                document.getElementById("streak-section").classList.remove("hidden");
+                fetchUserInfo(); // fetches the users data based on inputted id
+            } else {
+                alert("Please enter a valid User ID."); // displays a error message if the input is not valid. 
+            }
+        }
+
+        function fetchUserInfo() {
+            if (!userId) return;
+
+            fetch(`http://127.0.0.1:8085/rpg_streak/streak?userId=${userId}`, {
+                method: 'GET', // get request to fetch the users data 
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => { // what will happen if theres an error. 
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch user information: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Data received from backend:", data); // Log the response data
+                const currentStreak = data.currentStreak ?? 0; // if theres no streak it will make it 0 
+                document.getElementById('current-streak').textContent = currentStreak; // displays current streak in the HTML frontend 
+                document.getElementById('message').textContent = ""; // Clear any previous error messages
+            })
+            .catch(error => { //handles errors during this request 
+                console.error('Error:', error);
+                document.getElementById('message').textContent = 'Failed to load user information.';
+            });
+        }
+
+        function addStreak() { // function to add 1 to the streak each time the button is pressed 
+            if (!userId) return; 
+
+            fetch("http://127.0.0.1:8085/rpg_streak/streak", {
+                method: 'POST', // 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({  
+                    userId: userId,
+                    currentStreak: 1,
+                    maxStreak: 5
+                })
+            })
+            .then(response => { // checks if response is ok 
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(`Failed to update streak: ${text}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const currentStreak = data.currentStreak ?? 0; // gets current streak from backend 
+                document.getElementById('current-streak').textContent = currentStreak; // displays teh updated streak in the HTML
+                document.getElementById('message').textContent = "Streak updated successfully!"; // gives success message 
+            })
+            .catch(error => { // handles errors when fetching 
+                console.error('Error updating streak:', error);
+                document.getElementById('message').textContent = `Failed to update streak: ${error.message}`;
+            });
+        }
+
+        function toggleMaxStreak() { 
+            const maxStreakElement = document.getElementById("max-streak"); // gets the element to display the max streak 
+            const button = document.getElementById("toggle-max-streak"); // gets toggle button element 
+            const maxStreakValueElement = document.getElementById("max-streak-value"); // gets the element to show max streak 
+            if (maxStreakElement.classList.contains("hidden")) { // checks if teh max streak is being shown or hidden 
+                fetch(`http://127.0.0.1:8085/rpg_streak/streak?userId=${userId}`) // IF its hidden it fetches the streak from the backend 
+                .then(response => response.json()) 
+                .then(data => {
+                    maxStreakValueElement.textContent = data.maxStreak ?? 0; // display max streak or 0 
+                    maxStreakElement.classList.remove("hidden"); 
+                    button.textContent = "HIDE HIGHEST STREAK";
+                    button.setAttribute("data-text", "HIDE HIGHEST STREAK"); // Change button text to indicate hiding
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                maxStreakElement.classList.add("hidden"); // hide the max streak 
+                button.textContent = "SHOW HIGHEST STREAK"; // changes button to show highest streak 
+                button.setAttribute("data-text", "SHOW HIGHEST STREAK"); 
+            }
+        }
+    </script>
+    
+</body>
+</html>
+
